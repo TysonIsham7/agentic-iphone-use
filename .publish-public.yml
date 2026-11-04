@@ -1,0 +1,96 @@
+# Public snapshot config. Real device names, UDIDs, and emails belong in
+# .publish-public.local.yml and .publish-public.denylist, which are gitignored.
+# Practice: bash tools/publish-public/publish.sh --report /tmp/publish-public-report.txt
+# Do not pass --push until the practice report is clean and the owner says yes.
+
+public_remote: https://github.com/TysonIsham7/agentic-iphone-use.git
+public_branch: main
+commit_message: "Publish sanitized snapshot"
+author_name: "Tyson Isham"
+author_email: "131544016+TysonIsham7@users.noreply.github.com"
+denylist: .publish-public.denylist
+gitleaks_config: .gitleaks.toml
+builtin_drops: true
+
+drop:
+  - "**/xcuserdata"
+  - "**/*.xcuserstate"
+  - "**/DerivedData"
+  - "**/*.mobileprovision"
+  - "**/*.provisionprofile"
+  - "**/*.p12"
+  - "**/*.p8"
+  - "**/*.pfx"
+
+replacements:
+  - from: "REPLACE_APPLE_TEAM_ID"
+    to: "XXXXXXXXXX"
+  - from: "REPLACE_BUNDLE_ID"
+    to: "com.example.webdriveragent"
+  - from: "REPLACE_MAC_HOSTNAME"
+    to: "mac.example"
+  - from: "REPLACE_USERNAME"
+    to: "example"
+  - from: "REPLACE_HOME"
+    to: "/Users/example"
+  - from: "REPLACE_EMAIL"
+    to: "user@example.com"
+  - from: "REPLACE_DEVICE_MODEL"
+    to: "iPhone"
+  - from: "REPLACE_BUSINESS_NAME"
+    to: "Example Company"
+  - from: "private hardened copy"
+    to: "hardened fork"
+  - from: "Private hardened copy"
+    to: "Hardened fork"
+  - from: "This tree is a private, security-hardened copy"
+    to: "This tree is a security-hardened fork"
+
+  - pattern: 'DEVELOPMENT_TEAM = [A-Z0-9]{10}'
+    to: 'DEVELOPMENT_TEAM = XXXXXXXXXX'
+    skip_if_match: 'XXXXXXXXXX'
+  - pattern: 'DEVELOPMENT_TEAM: [A-Z0-9]{10}'
+    to: 'DEVELOPMENT_TEAM: XXXXXXXXXX'
+    skip_if_match: 'XXXXXXXXXX'
+  - pattern: 'DevelopmentTeam = [A-Z0-9]{10}'
+    to: 'DevelopmentTeam = XXXXXXXXXX'
+    skip_if_match: 'XXXXXXXXXX'
+  - pattern: '/Users/[A-Za-z0-9._-]+'
+    to: '/Users/example'
+    skip_if_match: '^/Users/example$'
+  - pattern: '/home/[A-Za-z0-9._-]+'
+    to: '/home/example'
+    skip_if_match: '^/home/example$'
+  - pattern: 'C:\\Users\\[A-Za-z0-9._-]+'
+    to: 'C:\Users\example'
+    skip_if_match: '^C:\\Users\\example$'
+  # Domain labels cannot be empty, so a changelog compare URL
+  # (name@1.2.3...name@1.2.4) is not treated as an email address.
+  - pattern: '[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)*\.[A-Za-z]{2,}'
+    to: 'user@example.com'
+    skip_if_match: '@(example\.com|example\.org|users\.noreply\.github\.com)$'
+    skip_paths:
+      - "CHANGELOG.md"
+  - pattern: 'MacBook( Pro| Air)?'
+    to: 'Mac'
+  - pattern: 'iPhone[0-9]+,[0-9]+'
+    to: 'iPhone'
+  - pattern: 'iPad[0-9]+,[0-9]+'
+    to: 'iPad'
+  # Hardware UDID shape (8-16 hex). Upper and lower stay distinct so the
+  # xcodebuild case fixture still differs after the rewrite.
+  - pattern: '[0-9A-F]{8}-[0-9A-F]{16}'
+    to: 'FFFFFFFF-FFFFFFFFFFFFFFFF'
+    paths:
+      - "test/**"
+      - "**/*spec.ts"
+  - pattern: '[0-9a-f]{8}-[0-9a-f]{16}'
+    to: 'ffffffff-ffffffffffffffff'
+    paths:
+      - "test/**"
+      - "**/*spec.ts"
+  - pattern: '[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12}'
+    to: '00000000-0000-4000-8000-000000000000'
+    paths:
+      - "test/**"
+      - "**/*spec.ts"
